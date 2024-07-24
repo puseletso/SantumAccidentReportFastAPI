@@ -1,9 +1,9 @@
 from fastapi import APIRouter, File, UploadFile, HTTPException, Form, Query
 from typing import List, Optional
-from models.accidentreportdetails import AccidentReport, AccidentReportUpdate
-from config.database import collection_name
+from app.models.accidentreportdetails import AccidentReport, AccidentReportUpdate
+from app.config.database import collection_name
 from bson import ObjectId
-from schema.schemas import list_serial
+from app.schema.schemas import list_serial
 
 
 router = APIRouter()
