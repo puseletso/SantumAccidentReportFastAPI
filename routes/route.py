@@ -1,10 +1,23 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, File, UploadFile, HTTPException, Form, Query
+from typing import List, Optional
 from models.accidentreportdetails import AccidentReport, AccidentReportUpdate
 from config.database import collection_name
 from bson import ObjectId
-from schema.schemas import list_serial  # Adjust the path if necessary
+from schema.schemas import list_serial
+
 
 router = APIRouter()
+
+
+def serialize_object(obj):
+    """Convert MongoDB ObjectId and other non-serializable fields to serializable formats."""
+    if isinstance(obj, ObjectId):
+        return str(obj)
+    if isinstance(obj, dict):
+        return {k: serialize_object(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [serialize_object(i) for i in obj]
+    return obj
 
 @router.get("/")
 async def get_accidentreports():
@@ -14,7 +27,7 @@ async def get_accidentreports():
 
 #Post request method
 @router.post("/")
-async def post_accidentreport(accidentreport : AccidentReport):
+async def post_accidentreport(accidentreport : AccidentReportUpdate):
     collection_name.insert_one(accidentreport.dict())
     return {"message": "Accident report added successfully"}
 
@@ -64,3 +77,40 @@ async def delete_accidentreport(id: str):
         raise HTTPException(status_code=404, detail="Accident report not found")
 
     return {"message": "Accident report deleted successfully"}
+
+
+
+@router.get("/search")
+async def search_accidentreports(
+    client_name: Optional[str] = None,
+    contact_number: Optional[str] = None,
+    accident_description: Optional[str] = None,
+    street_name: Optional[str] = None,
+    surburb_name: Optional[str] = None,
+    city_name: Optional[str] = None,
+    time: Optional[str] = None,
+    police_station_address: Optional[str] = None,
+    ar_number: Optional[str] = None
+):
+    query = {}
+    if client_name:
+        query["client_name"] = client_name
+    if contact_number:
+        query["contact_number"] = contact_number
+    if accident_description:
+        query["accident_description"] = accident_description
+    if street_name:
+        query["street_name"] = street_name
+    if surburb_name:
+        query["surburb_name"] = surburb_name
+    if city_name:
+        query["city_name"] = city_name
+    if time:
+        query["time"] = time
+    if police_station_address:
+        query["police_station_address"] = police_station_address
+    if ar_number:
+        query["ar_number"] = ar_number
+
+    accidentreports = list_serial(collection_name.find(query))
+    return {"reports": [serialize_object(report) for report in accidentreports]}
