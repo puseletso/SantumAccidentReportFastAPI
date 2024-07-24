@@ -20,14 +20,14 @@ def serialize_object(obj):
     return obj
 
 @router.get("/")
-async def get_accidentreports():
+async def show_all_accidentreports():
     accidentreports = list_serial(collection_name.find())
     return accidentreports
 
 
 #Post request method
 @router.post("/")
-async def post_accidentreport(accidentreport : AccidentReportUpdate):
+async def create_accidentreport(accidentreport : AccidentReportUpdate):
     collection_name.insert_one(accidentreport.dict())
     return {"message": "Accident report added successfully"}
 
@@ -36,7 +36,7 @@ async def post_accidentreport(accidentreport : AccidentReportUpdate):
 
 # Put request method
 @router.put("/{id}")
-async def put_accidentreport(id: str, accidentreport: AccidentReportUpdate):
+async def update_accidentreport(id: str, accidentreport: AccidentReportUpdate):
     # Convert id to ObjectId
     obj_id = ObjectId(id)
     
